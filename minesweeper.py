@@ -205,6 +205,9 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
+        print(self.knowledge)
+
+
         self.moves_made.add(cell) #1
         self.safes.add(cell) #2
 
@@ -241,9 +244,9 @@ class MinesweeperAI():
         if count==0:
             for neighbor in neighbors:
                 self.safes.add(neighbor)
-        
+
         # ADD TO KNOWLEDGE WHAT WE KNOW #############################
-        self.knowledge.append((neighbors,count)) #3?????????
+        self.knowledge.append((neighbors,count)) #3
 
         '''
         if sentence.known_mines():
@@ -254,25 +257,58 @@ class MinesweeperAI():
                 self.mark_safe(one_cell)
         '''
         for sentence in self.knowledge:
-            if neighbors.intersection(sentence[0]):
+            if cell in sentence[0]:
+                sentence[0].remove(cell) #we remove cell from our knowledge because cell is safe
+            for cell in self.moves_made:
+                if cell in sentence[0]:
+                    sentence[0].remove(cell)
+            for cell in self.safes:
+                if cell in sentence[0]:
+                    sentence[0].remove(cell)
+            for cell in self.mines:
+                if cell in sentence[0]:
+                    sentence[0].remove(cell)
+                    sentence[1]=sentence[1]-1
+            #if len(sentence[0])==0 and sentence[1]==0:#remove sentence???
+            if sentence[1]==0:
+                for sentenc in sentence[0]:
+                    self.safes.add(sentenc)
+            if len(sentence[0])==sentence[1]:
+                for sentenc in sentence[0]:
+                    self.mines.add(sentenc)
+
+
+
+        if len(neighbors) == count or count==0: pass
+
+        for sentence in self.knowledge:
+            if neighbors.issubset(sentence[0]):
                 # add something to knowledge??
+                new_tuple=(sentence[0] - neighbors, sentence[1] - count)
+                #self.knowledge.append((new_tuple[0], new_tuple[1])) #???????????add or no?
+                if not len(new_tuple): continue
 
-                if count>sentence[1]:   #len(neighbors)>len(sentence[0]): probably wrong
-                    if len(set(neighbors)-set(sentence[0]))==count-sentence[1]: # so there is mine(s)
-                        for cell in set(neighbors)-set(sentence[0]):
-                            self.mines.add(cell)
-                    elif count-sentence[1]==0:
-                        for cell in set(neighbors)-set(sentence[0]):
-                            self.safes.add(cell)
-                elif sentence[1]>=count:   #len(neighbors)>len(sentence[0]): probably wrong
-                    if len(set(sentence[0])-set(neighbors))==count-sentence[1]: # so there is mine(s)
-                        #add something to knowledge??
-                        for cell in set(sentence[0])-set(neighbors):
-                            self.mines.add(cell)
-                    elif sentence[1]-count==0:
-                        for cell in set(neighbors)-set(sentence[0]):
-                            self.safes.add(cell)
+                if len(new_tuple[0])==new_tuple[1]: # so there is mine(s)
+                    for new_cell in new_tuple[0]:
+                        self.mines.add(new_cell)
+                elif new_tuple[1]==0:
+                    for new_cell in new_tuple[0]:
+                        self.safes.add(new_cell)
+                elif new_tuple!=sentence[0]:########
+                    self.knowledge.append((new_tuple))
 
+            elif sentence[0].issubset(neighbors):
+                new_tuple = (neighbors-sentence[0], count-sentence[1])
+                if not len(new_tuple): continue
+
+                if len(new_tuple[0]) == new_tuple[1]:
+                    for new_cell in new_tuple[0]:
+                        self.mines.add(new_cell)
+                elif new_tuple[1] == 0:
+                    for new_cell in new_tuple[0]:
+                        self.safes.add(new_cell)
+                elif new_tuple != neighbors:##########
+                    self.knowledge.append((new_tuple))
         ########################CHECK THIS ^ UPP
 
             #sentence.know_safe()
