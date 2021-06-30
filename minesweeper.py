@@ -2,6 +2,7 @@ import itertools
 import random
 import random
 
+
 class Minesweeper():
     """
     Minesweeper game representation
@@ -81,6 +82,7 @@ class Minesweeper():
         """
         Checks if all mines have been flagged.
         """
+
         return self.mines_found == self.mines
 
 
@@ -106,22 +108,22 @@ class Sentence():
         Returns the set of all cells in self.cells known to be mines.
         """
 
-        if len(self.cells)==self.count:
+        if len(self.cells) == self.count:
             return self.cells
 
         return False
-        #for cell in self.cells:
+        # for cell in self.cells:
         #    mark_mine(cell)
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        if self.count==0:
+        if self.count == 0:
             return self.cells
 
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def mark_mine(self, cell):
         """
@@ -129,13 +131,12 @@ class Sentence():
         a cell is known to be a mine.
         """
         if cell in self.cells:
-            self.count-=1
+            self.count -= 1
             self.cells.remove(cell)
-            #if not know_mine():
+            # if not know_mine():
             #    know_safes()
 
-
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def mark_safe(self, cell):
         """
@@ -143,12 +144,12 @@ class Sentence():
         a cell is known to be safe.
         """
         if cell in self.cells:
-            self.count-=1
+            self.count -= 1
             self.cells.remove(cell)
-            #if not know_safe():
+            # if not know_safe():
             #    know_safe()
 
-        #raise NotImplementedError
+        # raise NotImplementedError
 
 
 class MinesweeperAI():
@@ -205,100 +206,122 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        print(self.knowledge)
 
+        self.moves_made.add(cell)  # 1
+        self.safes.add(cell)  # 2
 
-        self.moves_made.add(cell) #1
-        self.safes.add(cell) #2
+        # ADD EVERY NEIGHBOR OUR CELL - CARFULL IF NEAR BOARD
+        neighbors = set()
+        # (i,j) i = (height) j (width)
+        # left side
+        if cell[1] > 0:
+            if (cell[0], cell[1] - 1) in self.mines:
+                count -= 1
+            elif ((cell[0], cell[1] - 1) not in self.mines) and ((cell[0], cell[1] - 1) not in self.safes):
+                neighbors.add((cell[0], cell[1] - 1))
+        # up side
+        if cell[0] > 0:
+            if (cell[0] - 1, cell[1]) in self.mines:
+                count -= 1
+            elif ((cell[0] - 1, cell[1]) not in self.mines) and ((cell[0] - 1, cell[1]) not in self.safes):
+                neighbors.add((cell[0] - 1, cell[1]))
 
-        #ADD EVERY NEIGHBOR OUR CELL - CARFULL IF NEAR BOARD
-        neighbors=set()
-        #(i,j) i = (height) j (width)
-        if cell[1] > 0: neighbors.add((cell[0], cell[1]-1)) #left side
-        if cell[0] > 0: neighbors.add((cell[0]-1, cell[1]))  # up side
-        if cell[1] < self.width-1: neighbors.add((cell[0], cell[1]+1)) # right side
-        if cell[0] < self.height-1: neighbors.add((cell[0] + 1, cell[1])) # down side
-        if cell[0] > 0 and cell[1] > 0: neighbors.add((cell[0] -1, cell[1]-1)) #left up corner
-        if cell[0] > 0 and cell[1] < self.width-1: neighbors.add((cell[0] -1, cell[1]+1))  # right up corner
-        if cell[0] < self.height-1 and cell[1] < self.width-1: neighbors.add((cell[0] +1, cell[1]+1)) # right down corner
-        if cell[0] < self.height-1 and cell[1] > 0: neighbors.add((cell[0] +1, cell[1]-1)) # left down corner
-        # NOW CHECK IF SOMETHING IS TO REMOVE - MABEY VISITED OR IT'S SAFE OR IT'S MINE
-        to_remove=set()
-        for every_cell in neighbors:
-            if every_cell in self.mines: # if neighbor is mine, count is less..
-                to_remove.add(every_cell)
-                count-=1
-            elif every_cell in self.safes:
-                to_remove.add(every_cell)
-            elif every_cell in self.moves_made:
-                to_remove.add(every_cell)
-        # NOW REMOVE THIS CELLS
-        while len(to_remove)>0:
-            neighbors.remove(to_remove.pop())
+        if cell[1] < self.width - 1:
+            if (cell[0], cell[1] + 1) in self.mines:
+                count -= 1
+            elif ((cell[0], cell[1] + 1) not in self.mines) and ((cell[0], cell[1] + 1) not in self.safes):
+                neighbors.add((cell[0], cell[1] + 1))  # right side
 
-        # IF THERE IS CELLS EXACTLY HOW MUCH COUNT, EVERY CELL IS MINE
-        if len(neighbors)==count:
-            for neighbor in neighbors:
-                self.mines.add(neighbor)
+        if cell[0] < self.height - 1:
+            if (cell[0] + 1, cell[1]) in self.mines:
+                count -= 1
+            elif ((cell[0] + 1, cell[1]) not in self.mines) and ((cell[0] + 1, cell[1]) not in self.safes):
+                neighbors.add((cell[0] + 1, cell[1]))  # down side
+
+        if cell[0] > 0 and cell[1] > 0:
+            if (cell[0] - 1, cell[1] - 1) in self.mines:
+                count -= 1
+            elif ((cell[0] - 1, cell[1] - 1) not in self.mines) and ((cell[0] - 1, cell[1] - 1) not in self.safes):
+                neighbors.add((cell[0] - 1, cell[1] - 1))  # left up corner
+
+        if cell[0] > 0 and cell[1] < self.width - 1:
+            if (cell[0] - 1, cell[1] + 1) in self.mines:
+                count -= 1
+            elif ((cell[0] - 1, cell[1] + 1) not in self.mines) and ((cell[0] - 1, cell[1] + 1) not in self.safes):
+                neighbors.add((cell[0] - 1, cell[1] + 1))  # right up corner
+
+        if cell[0] < self.height - 1 and cell[1] < self.width - 1:
+            if (cell[0] + 1, cell[1] + 1) in self.mines:
+                count -= 1
+            elif ((cell[0] + 1, cell[1] + 1) not in self.mines) and ((cell[0] + 1, cell[1] + 1) not in self.safes):
+                neighbors.add((cell[0] + 1, cell[1] + 1))  # right down corner
+
+        if cell[0] < self.height - 1 and cell[1] > 0:
+            if (cell[0] + 1, cell[1] - 1) in self.mines:
+                count -= 1
+            elif ((cell[0] + 1, cell[1] - 1) not in self.mines) and  ((cell[0] + 1, cell[1] - 1) not in self.safes):
+                neighbors.add((cell[0] + 1, cell[1] - 1))  # left down corner
+        # ---------------------------------------------------------------------------------------------------------
+        #print("cell: " , cell) ###############################################################################
+        #print("Neighbors: ", neighbors, " count: ", count)
         # IF COUNT==0 THEN THERE IS NO MORE MINE IN THIS CELLS
-        if count==0:
+        if count == 0:
             for neighbor in neighbors:
                 self.safes.add(neighbor)
-
+                #print("Adding to safe: ", neighbor)
+        # IF THERE IS CELLS EXACTLY HOW MUCH COUNT, EVERY CELL IS MINE
+        elif len(neighbors) == count:
+            for neighbor in neighbors:
+                self.mines.add(neighbor)
         # ADD TO KNOWLEDGE WHAT WE KNOW #############################
-        self.knowledge.append((neighbors,count)) #3
-
-        '''
-        if sentence.known_mines():
-            for one_cell in sentence.known_mines():
-                self.mark_mine(one_cell)
-        if sentence.known_safes():
-            for one_cell in sentence.known_safes():
-                self.mark_safe(one_cell)
-        '''
+        else:  # changeningorsometh
+            self.knowledge.append([neighbors, count])  # 3   # KNOWLEDGE APPEND !!
+        # -----------------------------------------------------------------------------------------------------------
+        # re
         for sentence in self.knowledge:
             if cell in sentence[0]:
-                sentence[0].remove(cell) #we remove cell from our knowledge because cell is safe
-            for cell in self.moves_made:
-                if cell in sentence[0]:
-                    sentence[0].remove(cell)
-            for cell in self.safes:
-                if cell in sentence[0]:
-                    sentence[0].remove(cell)
-            for cell in self.mines:
-                if cell in sentence[0]:
-                    sentence[0].remove(cell)
-                    sentence[1]=sentence[1]-1
-            #if len(sentence[0])==0 and sentence[1]==0:#remove sentence???
-            if sentence[1]==0:
-                for sentenc in sentence[0]:
-                    self.safes.add(sentenc)
-            if len(sentence[0])==sentence[1]:
-                for sentenc in sentence[0]:
-                    self.mines.add(sentenc)
-
-
-
-        if len(neighbors) == count or count==0: pass
+                sentence[0].remove(cell)  # we remove cell from our knowledge because cell is safe
+            #for one_cell in self.moves_made:  # ?????????needed
+            #    if one_cell in sentence[0]:  #
+            #        sentence[0].remove(one_cell)  #
+            for one_cell in self.safes:
+                if one_cell in sentence[0]:
+                    sentence[0].remove(one_cell)
+            for one_cell in self.mines:
+                if one_cell in sentence[0]:
+                    sentence[0].remove(one_cell)
+                    sentence[1] -= 1
+            # if len(sentence[0])==0 and sentence[1]==0:#remove sentence???
+            if sentence[1] == 0:
+                for one_cell in sentence[0]:
+                    self.safes.add(one_cell)
+                    #print("Adding to safe: ", one_cell)  # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    #delete? sentence
+            if len(sentence[0]) == sentence[1]:
+                for one_cell in sentence[0]:
+                    self.mines.add(one_cell)
+        #print("Safe cells: ", self.safes)
+        '''
+        if len(neighbors) == count or count == 0 or len(neighbors) ==0: pass
 
         for sentence in self.knowledge:
-            if neighbors.issubset(sentence[0]):
+            if neighbors.issubset(frozenset(sentence[0])):
                 # add something to knowledge??
-                new_tuple=(sentence[0] - neighbors, sentence[1] - count)
-                #self.knowledge.append((new_tuple[0], new_tuple[1])) #???????????add or no?
+                new_tuple = (sentence[0] - neighbors, sentence[1] - count)
+                # self.knowledge.append(new_tuple[0], new_tuple[1]]}?) #???????????add or no?
                 if not len(new_tuple): continue
 
-                if len(new_tuple[0])==new_tuple[1]: # so there is mine(s)
+                if len(new_tuple[0]) == new_tuple[1]:  # so there is mine(s)
                     for new_cell in new_tuple[0]:
                         self.mines.add(new_cell)
-                elif new_tuple[1]==0:
+                elif new_tuple[1] == 0:
                     for new_cell in new_tuple[0]:
                         self.safes.add(new_cell)
-                elif new_tuple!=sentence[0]:########
-                    self.knowledge.append((new_tuple))
+                elif new_tuple != sentence[0]:
+                    self.knowledge.append([new_tuple])  # KNOWLEDGE APPEND !!
 
             elif sentence[0].issubset(neighbors):
-                new_tuple = (neighbors-sentence[0], count-sentence[1])
+                new_tuple = (neighbors - sentence[0], count - sentence[1])
                 if not len(new_tuple): continue
 
                 if len(new_tuple[0]) == new_tuple[1]:
@@ -307,15 +330,14 @@ class MinesweeperAI():
                 elif new_tuple[1] == 0:
                     for new_cell in new_tuple[0]:
                         self.safes.add(new_cell)
-                elif new_tuple != neighbors:##########
-                    self.knowledge.append((new_tuple))
+                elif new_tuple != neighbors:
+                    self.knowledge.append([new_tuple])   # KNOWLEDGE APPEND !!
         ########################CHECK THIS ^ UPP
-
-            #sentence.know_safe()
-            #sentence.know_mines()
-
-
-        #raise NotImplementedError
+        '''
+        # sentence.know_safe()
+        # sentence.know_mines()
+        #print("end processing")
+        # raise NotImplementedError
 
     def make_safe_move(self):
         """
@@ -330,8 +352,7 @@ class MinesweeperAI():
             if safe not in self.moves_made:
                 return safe
 
-
-        #raise NotImplementedError
+        # raise NotImplementedError
 
     def make_random_move(self):
         """
@@ -341,10 +362,19 @@ class MinesweeperAI():
             2) are not known to be mines
         """
         # height width (i,j) cell
-        while True:
-            i=random.randint(0,self.height-1)
-            j=random.randint(0,self.width-1)
-            if (i,j) not in self.moves_made and (i,j) not in self.mines:
-                return (i,j)
+        moves=0
+        for i in range(self.height):
+            for j in range(self.width):
+                if (i,j) not in self.moves_made:
+                    if (i,j) not in self.mines and (i,j) not in self.safes:
+                        moves+=1
 
-        #raise NotImplementedError
+        if moves == 0: return None
+
+        while True:
+            i = random.randint(0, self.height - 1)
+            j = random.randint(0, self.width - 1)
+            if (i, j) not in self.moves_made and (i, j) not in self.mines:
+                return (i, j)
+
+        # raise NotImplementedError
