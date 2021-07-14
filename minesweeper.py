@@ -259,7 +259,7 @@ class MinesweeperAI():
         if cell[0] < self.height - 1 and cell[1] > 0:
             if (cell[0] + 1, cell[1] - 1) in self.mines:
                 count -= 1
-            elif ((cell[0] + 1, cell[1] - 1) not in self.mines) and  ((cell[0] + 1, cell[1] - 1) not in self.safes):
+            elif ((cell[0] + 1, cell[1] - 1) not in self.mines) and ((cell[0] + 1, cell[1] - 1) not in self.safes):
                 neighbors.add((cell[0] + 1, cell[1] - 1))  # left down corner
         # ---------------------------------------------------------------------------------------------------------
         #print("cell: " , cell) ###############################################################################
@@ -277,13 +277,10 @@ class MinesweeperAI():
         else:  # changeningorsometh
             self.knowledge.append([neighbors, count])  # 3   # KNOWLEDGE APPEND !!
         # -----------------------------------------------------------------------------------------------------------
-        # re
+        # check if in sentence in knowledge is cell, if sentence ==0 or len==count in sentences
         for sentence in self.knowledge:
             if cell in sentence[0]:
                 sentence[0].remove(cell)  # we remove cell from our knowledge because cell is safe
-            #for one_cell in self.moves_made:  # ?????????needed
-            #    if one_cell in sentence[0]:  #
-            #        sentence[0].remove(one_cell)  #
             for one_cell in self.safes:
                 if one_cell in sentence[0]:
                     sentence[0].remove(one_cell)
@@ -295,45 +292,87 @@ class MinesweeperAI():
             if sentence[1] == 0:
                 for one_cell in sentence[0]:
                     self.safes.add(one_cell)
-                    #print("Adding to safe: ", one_cell)  # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                    #delete? sentence
             if len(sentence[0]) == sentence[1]:
                 for one_cell in sentence[0]:
                     self.mines.add(one_cell)
-        #print("Safe cells: ", self.safes)
-        '''
-        if len(neighbors) == count or count == 0 or len(neighbors) ==0: pass
+        # -------------------------------------- DELETE SENTENCE FROM KNOWLEDGE (less memory)
+        len_of_knowledge = len(self.knowledge)
+        turn=0
+        while turn<len_of_knowledge:
+            sentence=self.knowledge[turn]
+            if len(sentence[0]) == 0 or sentence[1] == 0 or len(sentence[0]) == sentence[1]:
+                del self.knowledge[turn]
+                len_of_knowledge -= 1
+            else:
+                turn += 1
 
-        for sentence in self.knowledge:
-            if neighbors.issubset(frozenset(sentence[0])):
-                # add something to knowledge??
-                new_tuple = (sentence[0] - neighbors, sentence[1] - count)
-                # self.knowledge.append(new_tuple[0], new_tuple[1]]}?) #???????????add or no?
-                if not len(new_tuple): continue
+        # ----------------------------------------------------------------------------------------------------------
+        if len(self.knowledge)>=3:
 
-                if len(new_tuple[0]) == new_tuple[1]:  # so there is mine(s)
-                    for new_cell in new_tuple[0]:
-                        self.mines.add(new_cell)
-                elif new_tuple[1] == 0:
-                    for new_cell in new_tuple[0]:
-                        self.safes.add(new_cell)
-                elif new_tuple != sentence[0]:
-                    self.knowledge.append([new_tuple])  # KNOWLEDGE APPEND !!
+            for i in self.knowledge:
+                for j in self.knowledge:
+                    if i == j: continue
+                    if i[0].issubset(j[0]):
+                        # add something to knowledge??
+                        new_tuple = (j[0] - i[0], j[1] - i[1])
+                        # self.knowledge.append(new_tuple[0], new_tuple[1]]}?) #???????????add or no?
+                        if not len(new_tuple): continue
 
-            elif sentence[0].issubset(neighbors):
-                new_tuple = (neighbors - sentence[0], count - sentence[1])
-                if not len(new_tuple): continue
+                        if len(new_tuple[0]) == new_tuple[1]:  # so there is mine(s)
+                            for new_cell in new_tuple[0]:
+                                self.mines.add(new_cell)
+                        elif new_tuple[1] == 0:
+                            for new_cell in new_tuple[0]:
+                                self.safes.add(new_cell)
+                        else:  # ??????????
+                            self.knowledge.append([new_tuple])  # KNOWLEDGE APPEND !!
 
-                if len(new_tuple[0]) == new_tuple[1]:
-                    for new_cell in new_tuple[0]:
-                        self.mines.add(new_cell)
-                elif new_tuple[1] == 0:
-                    for new_cell in new_tuple[0]:
-                        self.safes.add(new_cell)
-                elif new_tuple != neighbors:
-                    self.knowledge.append([new_tuple])   # KNOWLEDGE APPEND !!
+
+            '''
+            column=0
+            row=1
+            while True:
+                sentence_first=self.knowledge[column]
+                sentence_second=self.knowledge[row]
+
+                if sentence_first[0].issubset(sentence_second[0]):
+                    # add something to knowledge??
+                    new_tuple = (sentence_second[0] - sentence_first[0], sentence_second[1] - sentence_first[1])
+                    # self.knowledge.append(new_tuple[0], new_tuple[1]]}?) #???????????add or no?
+                    if not len(new_tuple): continue
+
+                    if len(new_tuple[0]) == new_tuple[1]:  # so there is mine(s)
+                        for new_cell in new_tuple[0]:
+                            self.mines.add(new_cell)
+                    elif new_tuple[1] == 0:
+                        for new_cell in new_tuple[0]:
+                            self.safes.add(new_cell)
+                    else:  # ??????????
+                        self.knowledge.append([new_tuple])  # KNOWLEDGE APPEND !!
+
+                elif (sentence_second[0]).issubset(sentence_first[0]):
+                    new_tuple = (sentence_first[0] - sentence_second[0], sentence_first[1] - sentence_second[1])
+                    if not len(new_tuple): continue
+
+                    if len(new_tuple[0]) == new_tuple[1]:
+                        for new_cell in new_tuple[0]:
+                            self.mines.add(new_cell)
+                    elif new_tuple[1] == 0:
+                        for new_cell in new_tuple[0]:
+                            self.safes.add(new_cell)
+                    else:
+                        self.knowledge.append([new_tuple])   # KNOWLEDGE APPEND !!
+
+                print(row, column)
+                row+=1
+                if row >= len(self.knowledge):
+                    column+=1
+                    row=column+1
+                if column>=len(self.knowledge):
+                    break
+            '''
         ########################CHECK THIS ^ UPP
-        '''
+
         # sentence.know_safe()
         # sentence.know_mines()
         #print("end processing")
